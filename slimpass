@@ -40,7 +40,7 @@ then
 fi
 
 read -s -p "Enter password file password: " PASSWORD_FILE_PASSWORD
-echo
+echo >&2
 export PASSWORD_FILE_PASSWORD
 
 case $OPERATION in
@@ -60,7 +60,7 @@ create)
   echo "\c" | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE"
   ;;
 query)
-  openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep "$NAME" | cut -f 1
+  openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep "$NAME" | cut -f 1 | tr -d '\n'
   ;;
 add)
   read -s -p "Enter password for new entry: " NEW_PASSWORD
