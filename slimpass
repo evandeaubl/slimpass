@@ -1,0 +1,75 @@
+#!/bin/sh
+
+PASSWORD_FILE="$HOME/.passwords"
+NAME=
+OPERATION=query
+ARGS_PROCESSED=0
+
+while getopts "adcn:" OPTION
+do
+  case $OPTION in
+  a)
+    OPERATION=add
+    ;;
+  d)
+    OPERATION=delete
+    ;;
+  c)
+    OPERATION=create
+    ;;
+  n)
+    NAME="$OPTARG"
+    ARGS_PROCESSED=$(($ARGS_PROCESSED + 1))
+    ;;
+  *)
+    ARGS_PROCESSED=$(($ARGS_PROCESSED - 1))
+    ;;
+  esac
+  ARGS_PROCESSED=$(($ARGS_PROCESSED + 1))
+done
+
+if [ $ARGS_PROCESSED -lt $# ]
+then
+  exit 1
+fi
+
+if [ -z "$NAME" ] && [ $OPERATION != "create" ]
+then
+  echo "Entry name is required for non-create operations" >&2
+  exit 1
+fi
+
+read -s -p "Enter password file password: " PASSWORD_FILE_PASSWORD
+echo
+export PASSWORD_FILE_PASSWORD
+
+case $OPERATION in
+create)
+  if [ -a $PASSWORD_FILE ]
+  then
+    echo "Password file $PASSWORD_FILE already exists - remove first to create" >&2
+    exit 2
+  fi
+  read -s -p "Verify password file password: " PASSWORD_FILE_PASSWORD2
+  echo
+  if [ $PASSWORD_FILE_PASSWORD != $PASSWORD_FILE_PASSWORD2 ]
+  then
+    echo "Passwords do not match - please retry" >&2
+    exit 3
+  fi
+  echo -n | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE"
+  ;;
+query)
+  openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep "$NAME" | cut -f 1
+  ;;
+add)
+  read -s -p "Enter password for new entry: " NEW_PASSWORD
+  echo
+  (openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" ; echo -n $NEW_PASSWORD ; echo -e -n "\t" ; echo -n "$NAME") | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE.tmp" && mv "$PASSWORD_FILE.tmp" "$PASSWORD_FILE"
+  ;;
+delete)
+  openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep -v "$NAME" | \
+    openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE.tmp" && mv "$PASSWORD_FILE.tmp" "$PASSWORD_FILE"
+  ;;
+esac
+
