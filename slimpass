@@ -5,7 +5,7 @@ NAME=
 OPERATION=query
 ARGS_PROCESSED=0
 
-while getopts "adcln:K" OPTION
+while getopts "adcln:r:K" OPTION
 do
   case $OPTION in
   a)
@@ -22,6 +22,11 @@ do
     ;;
   n)
     NAME="$OPTARG"
+    ARGS_PROCESSED=$(($ARGS_PROCESSED + 1))
+    ;;
+  r)
+    OPERATION=rename
+    NEWNAME="$OPTARG"
     ARGS_PROCESSED=$(($ARGS_PROCESSED + 1))
     ;;
   K)
@@ -89,5 +94,8 @@ delete)
 list)
   openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | cut -f 2-
   ;;
+rename)
+  openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | sed "s!$NAME!$NEWNAME!g" | \
+    openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE.tmp" && mv "$PASSWORD_FILE.tmp" "$PASSWORD_FILE"
 esac
 
