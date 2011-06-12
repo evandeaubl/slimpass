@@ -5,7 +5,7 @@ NAME=
 OPERATION=query
 ARGS_PROCESSED=0
 
-while getopts "adcn:K" OPTION
+while getopts "adcln:K" OPTION
 do
   case $OPTION in
   a)
@@ -16,6 +16,9 @@ do
     ;;
   c)
     OPERATION=create
+    ;;
+  l)
+    OPERATION=list
     ;;
   n)
     NAME="$OPTARG"
@@ -42,7 +45,7 @@ then
   exit 1
 fi
 
-if [ -z "$NAME" ] && [ $OPERATION != "create" ]
+if [ -z "$NAME" ] && [ $OPERATION != "create" -a $OPERATION != "list" ]
 then
   echo "Entry name is required for non-create operations" >&2
   exit 1
@@ -82,6 +85,9 @@ add)
 delete)
   openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep -v "$NAME" | \
     openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE.tmp" && mv "$PASSWORD_FILE.tmp" "$PASSWORD_FILE"
+  ;;
+list)
+  openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | cut -f 2-
   ;;
 esac
 
