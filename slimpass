@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PASSWORD_FILE="$HOME/.passwords"
+PASSWORD_FILE_PASSWORD=
 NAME=
 OPERATION=query
 ARGS_PROCESSED=0
@@ -39,8 +40,11 @@ then
   exit 1
 fi
 
-read -s -p "Enter password file password: " PASSWORD_FILE_PASSWORD
-echo >&2
+if [ -z "$PASSWORD_FILE_PASSWORD" ]
+then
+  read -s -p "Enter password file password: " PASSWORD_FILE_PASSWORD
+  echo >&2
+fi
 export PASSWORD_FILE_PASSWORD
 
 case $OPERATION in
