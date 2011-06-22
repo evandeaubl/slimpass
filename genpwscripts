@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for i in `slimpass -l -K`
+do
+  SCRIPT_NAME=${i/\//_}
+  echo '#!/bin/sh' >$SCRIPT_NAME
+  echo "slimpass -n $i -K|pbcopy" >>$SCRIPT_NAME
+  chmod +x $SCRIPT_NAME
+done
