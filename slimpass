@@ -110,7 +110,7 @@ create)
     echo "Passwords do not match - please retry" >&2
     exit 3
   fi
-  echo "\c" | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE"
+  printf "\c" | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE"
   ;;
 query)
   openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep "$NAME" | cut -f 1 | tr -d '\n'
@@ -118,7 +118,7 @@ query)
 add)
   read -s -p "Enter password for new entry: " NEW_PASSWORD
   echo
-  (openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" ; echo $NEW_PASSWORD"\t""$NAME") | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE.tmp" && mv "$PASSWORD_FILE.tmp" "$PASSWORD_FILE"
+  (openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" ; printf $NEW_PASSWORD"\t""$NAME") | openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -e -out "$PASSWORD_FILE.tmp" && mv "$PASSWORD_FILE.tmp" "$PASSWORD_FILE"
   ;;
 delete)
   openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" | grep -v "$NAME" | \
