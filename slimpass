@@ -63,6 +63,15 @@ then
 fi
 export PASSWORD_FILE_PASSWORD
 
+if [ $OPERATION != "create" ]
+then
+  if ! openssl enc -aes-256-cbc -pass env:PASSWORD_FILE_PASSWORD -d -in "$PASSWORD_FILE" >/dev/null 2>&1
+  then
+    echo "Decryption failed - password was likely incorrect" >&2
+    exit 5
+  fi
+fi
+
 case $OPERATION in
 create)
   if [ -a $PASSWORD_FILE ]
