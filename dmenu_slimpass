@@ -1,0 +1,12 @@
+#!/bin/sh
+
+TMPDIR=${TMPDIR:-/tmp}
+
+if [ ! -f $TMPDIR/slimpass-$USER ]
+then
+  rm -f $TMPDIR/slimpass-$USER
+  slimpass -l -K pinentry > $TMPDIR/slimpass-$USER
+  chmod 600 $TMPDIR/slimpass-$USER
+fi
+
+slimpass -n $(dmenu < $TMPDIR/slimpass-$USER) -K pinentry | xclip -selection c
